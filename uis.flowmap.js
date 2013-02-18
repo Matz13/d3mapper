@@ -1,0 +1,193 @@
+
+var w = window.innerWidth;        //width of the svg image
+var h = window.innerWidth/900*460;        //hight of the svg
+var centerX = (w)/2;    //center screen of the svg X
+var centerY = (h-50)/2;    //center screen of the svg Y
+
+var mapsChoices = [
+{id:"POP",file:"population2010.csv",name:"Population"},
+{id:"MAN",}
+];
+
+//preparing the map
+d3.geo.regular = function () {
+	var scale = 1, translate = [0, -50];
+	function regular(coordinates) {
+		var x = coordinates[0] / 360, y = -coordinates[1] / 360;
+		return [scale * x + translate[0], scale * Math.max(-.5, Math.min(.5, y)) + translate[1]];
+	}
+	regular.invert = function (coordinates) {
+		var x = (coordinates[0] - translate[0]) / scale, y = (coordinates[1] - translate[1]) / scale;
+		return [360 * x, 2 * Math.atan(Math.exp(-360 * y * d3_geo_radians)) / d3_geo_radians - 90];
+	};
+	regular.scale = function (x) {
+		if (!arguments.length) return scale;
+		scale = +x;
+		return regular;
+	};
+	regular.translate = function (x) {
+		if (!arguments.length) return translate;
+		translate = [+x[0], +x[1]];
+		return regular;
+	};
+	return regular;
+};
+
+var projection = d3.geo.regular()
+    .scale(w)
+    .translate([centerX, centerY]);
+
+var path = d3.geo.path()
+	.projection(projection);
+
+var zoom = d3.behavior.zoom()
+	.translate(projection.translate())
+	.scale(projection.scale())
+	.scaleExtent([2*h, 24 * h])
+	.on("zoom", zoom);
+
+function zoom() {
+  projection.translate(d3.event.translate)
+	.scale(d3.event.scale);
+  countries.selectAll("path")
+	.attr("d", path);
+}
+
+var svg = d3.select("body").append("svg")
+    .attr("width", w)
+    .attr("height", h)
+    .call(zoom)
+
+
+
+	
+/*
+	var cColors = {};
+	var cValues = {};
+
+countrySelection.forEach(function(d){
+	cColors[d.id] = d.color;
+	cValues[d.id] = +d.val;
+})
+*/
+
+
+// Loading values from the CSV
+var cVal = {};
+var dVal = {};
+
+d3.csv("population2010.csv", function(error,rawPop){
+	rawPop.forEach(function(d){
+		cVal[d.id] = +d.val;
+	});
+});
+
+
+
+	
+//creating the scale for the coloring
+var valScale = d3.scale.threshold()
+	.domain([5000000,10000000,25000000,50000000])
+	.range(colorbrewer.YlOrBr[5]);
+		
+//---------- creating the legend based on the color range and domain defined
+var legend = svg.append("g").attr("id", "legend");
+
+var valLegend = d3.values(valScale.range());
+var valLabel = d3.values(valScale.domain());
+
+legend.selectAll("rect")
+	.data(d3.keys(valScale.range()))
+	.enter().append("rect")
+		.attr("width","20")
+		.attr("height","20")
+		.attr("x","20")
+		.attr("y",function(d){return h-20-(20*d)})
+		.style("fill", function(d){ return valLegend[d];})
+		.append("title").text(function(d){return valLegend[d]});
+
+		
+legend.selectAll("text")
+	.data(d3.keys(valScale.range()))
+	.enter().append("text")
+		.attr("x","40")
+		.attr("y",function(d){return h-17-(20*d)})
+		.text(function(d){
+			if (valLabel[d] === undefined){return ""}
+			else {return "- "+valLabel[d];}
+		});
+		
+legend.append("text")
+	.attr("x", -h)
+	.attr("y", 15)
+	.attr("transform","rotate(-90 0,0)")
+	.text("Legend");
+//------------------------ end of Legend
+
+//bar chart
+/*bordelA = d3.keys(cVal);
+
+var graph = svg.append("g").attr("id", "graph");
+graph.selectAll("text")
+//	.data([1,2,5,9,4])
+	.data(dVal)
+	.enter().append("text")
+		.attr("x",function(d){return 100+d*10})
+		.attr("y",h-20)
+		.text(function(d){return d.val});
+
+d3.csv("population2010.csv", function(error,rawPop){
+	graph.selectAll("rect")
+	.data(rawPop)
+	.enter().append("rect")
+		.attr("x",function(d){return 100+indexOf(d) })
+		.attr("y",h-20)
+		.attr("width","20")
+		.attr("height","20")
+		
+		.text(function(d){return d.val});
+});
+
+ *
+var alacon = d3.select("body").append("div").attr("id","alacon");
+alacon.selectAll("div")
+	.data([1,2,3,4,5,6,7,8,9,0])
+	.enter().append("div")
+		.text("ho");
+*/
+
+//Draws the countries and applies the coloring according to the CSV and scale defined
+var countries = svg.append("g").attr("id", "countries");
+d3.json("world_countries.json", function(json) {
+	countries.selectAll("path")
+		.data(json.features)
+		.enter().append("path")
+			.attr("svg:name", function (d) {return d.properties.name;})
+			.attr("id", function (d) {return d.id;})
+			.attr("d", path)
+			.style("fill", function(d){
+				
+				if(cVal[d.id] === undefined){return "#666666";}
+				else{ return valScale(cVal[d.id]);}
+			})
+			.append("title").text(function (d) {return d.properties.name+"\nPop: "+cVal[d.id];})
+			.on("click", click);
+});
+
+	
+function click(d) {
+	var centroid = path.centroid(d),
+		translate = projection.translate();
+	
+	projection.translate([
+		translate[0] - centroid[0] + w / 2,
+		translate[1] - centroid[1] + h / 2
+	]);
+	
+	zoom.translate(projection.translate());
+	
+	countries.selectAll("path").transition()
+		.duration(1000)
+		.attr("d", path);
+}
+

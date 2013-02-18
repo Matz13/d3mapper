@@ -1,0 +1,58 @@
+    body{
+		font-family: Arial, Verdana, Helvetica, sans-serif!important;
+		font-size: 12px;
+		margin:0px;
+		padding:0;
+		background:url(mapbg.png);
+	}
+
+	h2{
+		text-align:center;
+		margin:0;
+		height: 1.4em;
+	}
+     
+    svg {
+     overflow: hidden;
+    }
+
+	#legend{font-weight: bold;}
+
+    #countries path {
+      fill: #F2EFDF;
+      stroke: #fff;
+	  opacity: 1;
+	  stroke-width:1;
+    }
+     
+    #countries path:hover{
+      fill: #F2EFDF!important;
+	  opacity: 1;
+    }
+	
+	#countries path.highlighted{
+		fill:#8FE002;
+	}
+
+	#container{
+		width:100%;
+		height:100%;
+		margin:0px;
+	}
+	
+	#controls{
+		position: relative;
+		top: 0;
+		left: 0;
+	}
+
+	#countries rect{
+		stroke: #666;
+		stroke-width: 0.5;
+	}
+	
+	#textSource textarea{
+		width: 50%;
+		height:12em;
+		margin: 0 5px 0 5px;
+	}
