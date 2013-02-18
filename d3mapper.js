@@ -76,13 +76,17 @@ countrySelection.forEach(function(d){
 
 // Loading values from the CSV
 var cVal = {};
-var dVal = {};
 
 d3.csv(fileToLoad, function(error,rawPop){
 	rawPop.forEach(function(d){
 		cVal[d.id] = +d.val;
 	});
 });
+
+var dVal = d3.csv(fileToLoad, function(error,rawPop){
+	return rawPop;
+});
+
 	
 //creating the scale for the coloring
 var valScale = d3.scale.threshold()
@@ -93,8 +97,10 @@ var valScale = d3.scale.threshold()
 var legend = svg.append("g").attr("id", "legend");
 var legend2 = svg.append("g").attr("id", "legend2");
 	
+	var maxVal = d3.max(d3.values(cVal));
+	
 var legScale = d3.scale.linear()
-	.domain(d3.extent(d3.values(cVal)))
+	.domain([+d3.min(d3.values(cVal)),d3.max(d3.values(cVal))])
 	.range([0,300]);
 	
 var xAxis = d3.svg.axis()
