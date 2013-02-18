@@ -16,7 +16,7 @@
      overflow: hidden;
     }
 
-	#legend{font-weight: bold;}
+	#legend{font-weight: bold; z-index:9999;}
 
     #countries path {
       fill: #F2EFDF;
