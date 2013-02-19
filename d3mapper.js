@@ -82,11 +82,6 @@ d3.csv(fileToLoad, function(error,rawPop){
 		cVal[d.id] = +d.val;
 	});
 });
-
-var dVal = d3.csv(fileToLoad, function(error,rawPop){
-	return rawPop;
-});
-
 	
 //creating the scale for the coloring
 var valScale = d3.scale.threshold()
@@ -160,29 +155,19 @@ legend.append("text")
 	.text("Legend");
 //------------------------ end of Legend --------------------------------------
 
-//bar chart
-/*
-bordelA = d3.keys(cVal);
+// bar chart
 
-graph.selectAll("rect")
-//	.data([1,2,5,9,4])
-	.data(dVal)
-	.enter().append("rect")
-		.attr("x",function(d){return 100+d*10})
-		.attr("y",h-20)
-		.text(function(d){return d.val});
-*/
 var graph = svg.append("g").attr("id", "graph");
-d3.csv("population2010.csv", function(error,rawPop){
+d3.csv(fileToLoad, function(error,rawPop,i){
 	graph.selectAll("rect")
 	.data(rawPop)
 	.enter().append("rect")
-		.attr("x",function(d){return 100+indexOf(d) })
-		.attr("y",h-20)
-		.attr("width","20")
-		.attr("height","20")
-		
-		.text(function(d){return d.val});
+		.attr("x",function(d,i){return 100+(+i*10) })
+		.attr("y",function(d){return h-d.val/1000000})
+		.attr("width","3")
+		.attr("height",function(d){return d.val/1000000 })
+		.text(function(d){return d.val})
+		.append("title").text(function(d){return d.id+": "+d.val});
 });
 
 /*
