@@ -157,19 +157,20 @@ legend.append("text")
 
 // bar chart
 
+
 var graph = svg.append("g").attr("id", "graph");
 d3.csv(fileToLoad, function(error,rawPop,i){
 	graph.selectAll("rect")
 	.data(rawPop)
 	.enter().append("rect")
-		.attr("x",function(d,i){return 100+(+i*10) })
-		.attr("y",function(d){return h-d.val/1000000})
-		.attr("width","3")
-		.attr("height",function(d){return d.val/1000000 })
+		.attr("x",function(d,i){return 100+(+i*4) })
+		.attr("y",function(d){return h-Math.sqrt(d.val/1000000)})
+		.attr("width","4")
+		.attr("height",function(d){return Math.sqrt(d.val/1000000) })
 		.text(function(d){return d.val})
+		.style("fill",function(d){return valScale(d.val)})
 		.append("title").text(function(d){return d.id+": "+d.val});
 });
-
 /*
 var alacon = d3.select("body").append("div").attr("id","alacon");
 alacon.selectAll("div")
