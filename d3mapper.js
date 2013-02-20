@@ -1,6 +1,6 @@
 
 var w = window.innerWidth;        //width of the svg image
-var h = window.innerWidth/2;        //hight of the svg
+var h = d3.round(window.innerWidth/2);        //height of the svg
 var centerX = (w)/2;    //center screen of the svg X
 var centerY = (h)/2;    //center screen of the svg Y
 
@@ -11,33 +11,9 @@ var mapsChoices = [
 
 var fileToLoad = "population2010.csv";
 
-//preparing the map
-d3.geo.regular = function () {
-	var scale = 1, translate = [0, -50];
-	function regular(coordinates) {
-		var x = coordinates[0] / 360, y = -coordinates[1] / 360;
-		return [scale * x + translate[0], scale * Math.max(-.5, Math.min(.5, y)) + translate[1]];
-	}
-	regular.invert = function (coordinates) {
-		var x = (coordinates[0] - translate[0]) / scale, y = (coordinates[1] - translate[1]) / scale;
-		return [360 * x, 2 * Math.atan(Math.exp(-360 * y * d3_geo_radians)) / d3_geo_radians - 90];
-	};
-	regular.scale = function (x) {
-		if (!arguments.length) return scale;
-		scale = +x;
-		return regular;
-	};
-	regular.translate = function (x) {
-		if (!arguments.length) return translate;
-		translate = [+x[0], +x[1]];
-		return regular;
-	};
-	return regular;
-};
-
 var projection = d3.geo.naturalEarth()
     .scale(w/5.1)
-    .translate([centerX, centerY+40]);
+    .translate([centerX, centerY+30]);
 
 var path = d3.geo.path()
 	.projection(projection);
@@ -60,25 +36,11 @@ var svg = d3.select("body").append("svg")
     .attr("height", h)
     .call(zoom)
 
-
-
-	
-/*
-	var cColors = {};
-	var cValues = {};
-
-countrySelection.forEach(function(d){
-	cColors[d.id] = d.color;
-	cValues[d.id] = +d.val;
-})
-*/
-
-
 // Loading values from the CSV
 var cVal = {};
 
 d3.csv(fileToLoad, function(error,rawPop){
-	rawPop.forEach(function(d){
+	rawPop.forEach(function(d, i){
 		cVal[d.id] = +d.val;
 	});
 });
@@ -89,26 +51,31 @@ var valScale = d3.scale.threshold()
 	.range(colorbrewer.YlOrBr[5]);
 
 // create the legend placeholders
-var legend = svg.append("g").attr("id", "legend");
-var legend2 = svg.append("g").attr("id", "legend2");
+var legend2 = svg.append("g")
+	.attr("id", "legend2")
+	.attr("transform","translate("+d3.round(w*.025)+","+d3.round(h-25)+")");
 	
-	var maxVal = d3.max(d3.values(cVal));
+var maxVal = d3.round(d3.max(d3.values(cVal)));
 	
-var legScale = d3.scale.linear()
-	.domain([+d3.min(d3.values(cVal)),d3.max(d3.values(cVal))])
-	.range([0,300]);
+var legScale = d3.scale.sqrt()
+	.domain([9827,1337825000])
+	.range([0,d3.round(w*.95)]);
+
+var formatMillion = d3.format("s");
+var formatMillionMap = d3.format(",");
 	
 var xAxis = d3.svg.axis()
 	.scale(legScale)
 	.orient("bottom")
-	.tickSize(13)
-	.tickValues(valScale.domain());
+	.tickSize(11)
+	.tickValues(valScale.domain())
+	.tickFormat(function(d){return formatMillion(d)});
 	
 legend2.selectAll("rect")
 	.data(valScale.range().map(function(d, i){
 		return{
-			x0: i ? legScale(valScale.domain()[i - 1]) : legScale.range()[0],
-			x1: i < 4 ? legScale(valScale.domain()[i]) : legScale.range()[1],
+			x0: i ? d3.round(legScale(valScale.domain()[i - 1])) : legScale.range()[0],
+			x1: i < 4 ? d3.round(legScale(valScale.domain()[i])) : legScale.range()[1],
 			z: d
 		}
 	}))
@@ -117,12 +84,16 @@ legend2.selectAll("rect")
 		.attr("x",function(d){return d.x0;})
 		.attr("width",function(d){return d.x1 - d.x0;})
 		.style("fill",function(d){return d.z;});
+
+legend2.call(xAxis).append("text")
+	.attr("class","caption")
+	.attr("y", -6)
+	.text("Population per country. (Hover a county to get more information)");
 		
-		
-//---------- creating the legend based on the color range and domain defined
+/*/---------- creating the legend based on the color range and domain defined
+var legend = svg.append("g").attr("id", "legend");
 var valLegend = d3.values(valScale.range());
 var valLabel = d3.values(valScale.domain());
-
 legend.selectAll("rect")
 	.data(d3.keys(valScale.range()))
 	.enter().append("rect")
@@ -153,11 +124,9 @@ legend.append("text")
 	.attr("y", 15)
 	.attr("transform","rotate(-90 0,0)")
 	.text("Legend");
-//------------------------ end of Legend --------------------------------------
+//------------------------ end of Legend --------------------------------------/*/
 
-// bar chart
-
-
+/*/ bar chart
 var graph = svg.append("g").attr("id", "graph");
 d3.csv(fileToLoad, function(error,rawPop,i){
 	graph.selectAll("rect")
@@ -171,12 +140,6 @@ d3.csv(fileToLoad, function(error,rawPop,i){
 		.style("fill",function(d){return valScale(d.val)})
 		.append("title").text(function(d){return d.id+": "+d.val});
 });
-/*
-var alacon = d3.select("body").append("div").attr("id","alacon");
-alacon.selectAll("div")
-	.data([1,2,3,4,5,6,7,8,9,0])
-	.enter().append("div")
-		.text("ho");
 */
 
 //Draws the countries and applies the coloring according to the CSV and scale defined
@@ -193,7 +156,7 @@ d3.json("world_countries.json", function(json) {
 				if(cVal[d.id] === undefined){return "#666666";}
 				else{ return valScale(cVal[d.id]);}
 			})
-			.append("title").text(function (d) {return d.properties.name+"\nPop: "+cVal[d.id];})
+			.append("title").text(function (d) {return d.properties.name+"\nPop: "+formatMillionMap(cVal[d.id]);})
 			.on("click", click);
 });
 
