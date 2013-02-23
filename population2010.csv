@@ -1,4 +1,4 @@
-"IndicatorName","IndicatorCode","CountryName","id","val"
+"IndicatorName","IndicatorCode","CountryName","countryCode","val"
 "Population, total",SP.POP.TOTL,Afghanistan,AFG,34385068
 "Population, total",SP.POP.TOTL,Albania,ALB,3204284
 "Population, total",SP.POP.TOTL,Algeria,DZA,35468208

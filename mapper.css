@@ -12,6 +12,10 @@
 		height: 1.4em;
 	}
      
+	#d3mapper{
+
+	} 
+	
     svg {
      overflow: hidden;
 	 font: 10px sans-serif;
