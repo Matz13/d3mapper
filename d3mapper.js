@@ -2,21 +2,63 @@
 
 //defines the configuration of the map
 
-var mapTitle = "Measures of children out of school (2011)";
-var fileToLoad = "outofschoolprimary2011.csv";
-var datatype = "qualitative";
-var colorscale = colorbrewer.Blues[6]; //define the colors and the number of steps of the scale
-var legendScaleRange = [0,.50];
-var mapScaleDomain = [.01,.05,.1,.2,.30]; // auto | [min, max]
+var OOSC2011_config = {
+	mapTitle : "Measures of children out of school (2011)",
+	fileToLoad : "outofschoolprimary2011.csv",
+	datatype : "qualitative",
+	colorscale : colorbrewer.Blues[6], //define the colors and the number of steps of the scale
+	legendScaleRange : [0,.63],
+	mapScaleDomain : [.01,.05,.1,.2,.30] // auto | [min, max]
+}
 
-/*
-var mapTitle = "Population (2010)";
-var fileToLoad = "population2010.csv";
-var datatype = "quantitative";
-var colorscale = colorbrewer.YlOrBr[6]; //define the colors and the number of steps of the scale
-var legendScaleRange = [0,200000000];
-var mapScaleDomain = [5000000,10000000,25000000,50000000,100000000];
-*/
+var population2010_config = {
+	mapTitle : "Population (2010)",
+	fileToLoad : "population2010.csv",
+	datatype : "quantitative",
+	colorscale : colorbrewer.YlOrBr[6], //define the colors and the number of steps of the scale
+	legendScaleRange : [0,200000000],
+	mapScaleDomain : [5000000,10000000,25000000,50000000,100000000]
+}
+
+//var config = population2010_config;
+var config = OOSC2011_config;
+
+
+// builds the controls
+d3.select("#controls")
+	.append("form")
+	.attr("id","chooseMap")
+		.append("label")
+		.text("Population 2010")
+		.append("input")
+			.attr("type","radio")
+			.attr("name","dataset")
+			.attr("value", "Pop_2010")
+			.property("checked","checked");
+
+d3.select("#chooseMap")
+	.attr("id","chooseMap")
+		.append("label")
+		.text("Out Of School Children 2011")
+		.append("input")
+			.attr("type","radio")
+			.attr("name","dataset")
+			.attr("value", "OOSC_2011");
+			
+d3.select("#chooseMap").selectAll("input")
+	.on("change",function change(){
+		switch(this.value){
+			case 'Pop_2010':
+				config = population2010_config;
+				draw()
+				break;
+			case 'OOSC_2011':
+				config = OOSC2011_config;
+				draw()
+				break;
+		}
+	})
+
 
 var w = window.innerWidth;        //width of the page
 var h = window.innerHeight;        //height of the page
@@ -72,24 +114,20 @@ var legend2 = svg.append("g")
 //----------------------- Loading values from the CSV
 function draw(){
 
-d3.csv(fileToLoad, function(error,rawPop){
+d3.csv(config.fileToLoad, function(error,rawPop){
 	d3.json("world_countries.json", function(json) {
 	var cVal = {};
 	rawPop.forEach(function(d, i){
 		cVal[d.countryCode] = +d.val;
 	});
-	var dVal;
-	d3.csv(fileToLoad, function(error,fileData){
-		dVal = fileData;
-	});
-
+	var dVal = rawPop;
 
 	var valScale = d3.scale.threshold()
-		.domain(mapScaleDomain)
-		.range(colorscale);
+		.domain(config.mapScaleDomain)
+		.range(config.colorscale);
 		
 	var legScale = d3.scale.linear()
-		.domain(legendScaleRange?legendScaleRange:d3.extent(d3.values(cVal)))
+		.domain(config.legendScaleRange?config.legendScaleRange:d3.extent(d3.values(cVal)))
 		.range([0,d3.round(svgSize.w*.95)]);
 	
 	var xAxis = d3.svg.axis()
@@ -99,10 +137,10 @@ d3.csv(fileToLoad, function(error,rawPop){
 		.tickValues(valScale.domain())
 		.tickFormat(function(d){return formatScaleVal(d)});
 		
-	if (datatype == "quantitative"){ // adapts the coloring and scale to use integers	
+	if (config.datatype == "quantitative"){ // adapts the coloring and scale to use integers	
 		var formatScaleVal = d3.format("s");
 		var formatMapVal = d3.format(",");
-	}else if (datatype == "qualitative"){ // adapts the coloring and scale to use percentages
+	}else if (config.datatype == "qualitative"){ // adapts the coloring and scale to use percentages
 		var formatScaleVal = d3.format("%");
 		var formatMapVal = d3.format("%");
 	}
@@ -124,7 +162,7 @@ d3.csv(fileToLoad, function(error,rawPop){
 	legend2.call(xAxis).append("text")
 		.attr("class","caption")
 		.attr("y", -6)
-		.text(mapTitle+". (Hover a country to get more information)");
+		.text(config.mapTitle+". (Hover a country to get more information)");
 	// end of legend
 			
 			
