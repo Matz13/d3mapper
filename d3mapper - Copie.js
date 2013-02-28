@@ -53,7 +53,7 @@ d3.select("#chooseMap").selectAll("input")
 
 var w = window.innerWidth;        //width of the page
 var h = window.innerHeight;        //height of the page
-var r = 2.12; 	//ratio width/height of the coutries display
+var r = 2.12; 	//ratio width height of the coutries display
 
 var svgSize ={};	//calculate the size of the svg element to fit the window
 if(w/(h-35) < r){svgSize.w = w; svgSize.h = d3.round(w/r)+35;}
@@ -65,17 +65,18 @@ var mapSize = {w:svgSize.w,h:svgSize.h-35};
 // define a projection and initial scale and position
 
 var projection = d3.geo.naturalEarth()
-	.scale(mapSize.w/5.5)
-	.translate([mapSize.w/2, (mapSize.h/2)*1.12]);
+    .scale(mapSize.w/5.5)
+    .translate([mapSize.w/2, (mapSize.h/2)*1.12])
+	;
 
 var path = d3.geo.path()
 	.projection(projection);
 
 var zoom = d3.behavior.zoom()
-	.translate(projection.translate())
 	.scale(projection.scale())
+	.translate(projection.translate())
 	.scaleExtent([w/5.5, w])
-	.on("zoom", mapZoom);
+	.on("zoom", move);
 
 function mapZoom() {
   projection.translate(d3.event.translate)
@@ -83,25 +84,16 @@ function mapZoom() {
   countries.selectAll("path")
 	.attr("d", path);
 }
-/*
+
 function move() {
   var t = d3.event.translate,
       s = d3.event.scale;
-	  cx = mapSize.w/2;
-	  cy = mapSize.h/2;
-	  
-	  console.log("t.in= "+t+" - s= "+s);
-	  
-  t[0] = Math.min(cx *(s-1), Math.max(cx *(1-s), t[0]));
-  t[1] = Math.min(cy *(s-1), Math.max(cy *(1-s), t[1]));
+  t[0] = Math.min(w / 2 * (s - 1), Math.max(w / 2 * (1 - s), t[0]));
+  t[1] = Math.min(h / 2 * (s - 1) + 230 * s, Math.max(h / 2 * (1 - s) - 230 * s, t[1]));
   zoom.translate(t);
-  countries.attr("transform", "translate(" + t + ")scale(" + s + ")");
-  
-//  	console.log("t.out= "+t+" - s= "+s);
-//		console.log(mapSize.w+","+mapSize.h);
-		console.log(cx *(s-1)+" - "+t[0]+" - "+cx *(1-s));
+  countries.style("stroke-width", 1 / s).attr("transform", "translate(" + t + ")scale(" + s + ")");
 }
-*/
+
 // -------------------------- creates the svg elements
 var svg = d3.select("#d3mapper").append("svg")
     .attr("width", svgSize.w)
@@ -109,7 +101,8 @@ var svg = d3.select("#d3mapper").append("svg")
 	.call(zoom);
 
 var countries = svg.append("g")
-	.attr("id", "countries");
+	.attr("id", "countries")
+	.attr("transform", "translate(" + w / 2 + "," + h / 2 + ")");
 	
 var legend2 = svg.append("g")
 	.attr("id", "legend2")

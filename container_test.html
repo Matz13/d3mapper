@@ -7,17 +7,50 @@
 		<link type="text/css" href="./mapper.css" rel="Stylesheet" />
 		
 		<title>D3 mapper Link test</title>
-		<style>iframe{border:inset 1px;}</style>
+		<style>
+			body{margin:5px;}
+			iframe{border:inset 1px;}
+			a{font-family:arial;text-decoration:none;font-weight:bold;}
+		
+		</style>
 	</head>
 <body>
-<form>
-	<select>
-		<option>Blues</option>
-		<option>Reds</option>
-		<option>YlOrBr</option>
-	</select>
+
+<a href="index.html" target="mapframe">Default map</a><br />
+<a href="se_prm_durs.html" target="mapframe">Duration of mandatory Primary School (2011)</a><br />
+<a href="population_2010.html" target="mapframe">Population (2010)</a><br />
+<a href="oosc2011.html" target="mapframe">Out of School Children (2011)</a><br />
+
+
+
+<iframe id="mapframe" src="index.html" style="width:900px;height:540px;"></iframe>
+
+<!--/*
+	var primary_duration_config = {
+		mapTitle : "Duration of Mandatory primary school (2011)",
+		fileToLoad : "se_prm_durs.csv",
+		datatype : "quantitative",
+		colorscale : colorbrewer.RdYlGn[10], //define the colors and the number of steps of the scale
+		legendScaleRange : [0,9],
+		mapScaleDomain : [0,1,2,3,4,5,6,7,8,9] // auto | [min, max]
+	};
 	
-</form>
-
-
-<iframe src="index.html" style="width:900px;height:540px;"></iframe>
+	var population_2010_config = {
+		mapTitle : "Population (2010)",
+		fileToLoad : "population2010.csv",
+		datatype : "quantitative",
+		colorscale : colorbrewer.Purples[6], //define the colors and the number of steps of the scale
+		legendScaleRange : [0,200000000],
+		mapScaleDomain : [5000000,10000000,25000000,50000000,100000000]
+	}
+	
+	var outofschool_prm_2011_config = {
+		mapTitle : "Measures of children out of school (2011)",
+		fileToLoad : "outofschoolprimary2011.csv",
+		datatype : "qualitative",
+		colorscale : colorbrewer.Reds[6], //define the colors and the number of steps of the scale
+		legendScaleRange : [0,.63],
+		mapScaleDomain : [.01,.05,.1,.2,.30] // auto | [min, max]
+	}
+*/-->
+	

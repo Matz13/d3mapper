@@ -1,7 +1,6 @@
 <!DOCTYPE html>
-<meta charset="utf-8" />
+<meta charset="utf-8">
 <html xmlns:mso="urn:schemas-microsoft-com:office:office" xmlns:msdt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882">
-
 	<head>
 		<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
 		<script src="http://d3js.org/d3.geo.projection.v0.min.js"></script>
@@ -34,6 +33,14 @@
 
 	<script type="text/javascript" >
 		// define the variables for the map
+	var config = {
+		mapTitle : "Duration of Mandatory primary school (2011)",
+		fileToLoad : "se_prm_durs.csv",
+		datatype : "quantitative",
+		colorscale : colorbrewer.RdYlGn[10], //define the colors and the number of steps of the scale
+		legendScaleRange : [0,9],
+		mapScaleDomain : [0,1,2,3,4,5,6,7,8,9] // auto | [min, max]
+	};
 
 
 	</script>
