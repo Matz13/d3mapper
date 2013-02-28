@@ -15,7 +15,7 @@ if(!config){
 //var config = OOSC2011_config;
 
 
-// builds the controls
+/*/ builds the controls
 d3.select("#controls")
 	.append("form")
 	.attr("id","chooseMap")
@@ -49,7 +49,7 @@ d3.select("#chooseMap").selectAll("input")
 				break;
 		}
 	})
-
+*/
 
 var w = window.innerWidth;        //width of the page
 var h = window.innerHeight;        //height of the page
@@ -83,8 +83,8 @@ function mapZoom() {
   countries.selectAll("path")
 	.attr("d", path);
 }
-/*
-function move() {
+
+function move() { // attempt at a function that constraint the zoom to the limits of the map
   var t = d3.event.translate,
       s = d3.event.scale;
 	  cx = mapSize.w/2;
@@ -101,7 +101,7 @@ function move() {
 //		console.log(mapSize.w+","+mapSize.h);
 		console.log(cx *(s-1)+" - "+t[0]+" - "+cx *(1-s));
 }
-*/
+
 // -------------------------- creates the svg elements
 var svg = d3.select("#d3mapper").append("svg")
     .attr("width", svgSize.w)
@@ -120,69 +120,69 @@ function draw(config){
 
 d3.csv(config.fileToLoad, function(error,rawPop){
 	d3.json("world_countries.json", function(json) {
-	var cVal = {};
-	rawPop.forEach(function(d, i){
-		cVal[d.countryCode] = +d.val;
-	});
-	var dVal = rawPop;
-
-	var valScale = d3.scale.threshold()
-		.domain(config.mapScaleDomain)
-		.range(config.colorscale);
-		
-	var legScale = d3.scale.linear()
-		.domain(config.legendScaleRange?config.legendScaleRange:d3.extent(d3.values(cVal)))
-		.range([0,d3.round(svgSize.w*.95)]);
+		var cVal = {};
+		rawPop.forEach(function(d, i){
+			cVal[d.countryCode] = +d.val;
+		});
+		var dVal = rawPop;
 	
-	var xAxis = d3.svg.axis()
-		.scale(legScale)
-		.orient("bottom")
-		.tickSize(11)
-		.tickValues(valScale.domain())
-		.tickFormat(function(d){return formatScaleVal(d)});
-		
-	if (config.datatype == "quantitative"){ // adapts the coloring and scale to use integers	
-		var formatScaleVal = d3.format("s");
-		var formatMapVal = d3.format(",");
-	}else if (config.datatype == "qualitative"){ // adapts the coloring and scale to use percentages
-		var formatScaleVal = d3.format("%");
-		var formatMapVal = d3.format("%");
-	}
-	
-	legend2.selectAll("rect")
-		.data(valScale.range().map(function(d, i){
-			return{
-				x0: i ? d3.round(legScale(valScale.domain()[i - 1])) : legScale.range()[0],
-				x1: i < 4 ? d3.round(legScale(valScale.domain()[i])) : legScale.range()[1],
-				z: d
-			}
-		}))
-		.enter().append("rect")
-			.attr("height",8)
-			.attr("x",function(d){return d.x0;})
-			.attr("width",function(d){return d.x1 - d.x0;})
-			.style("fill",function(d){return d.z;});
-	
-	legend2.call(xAxis).append("text")
-		.attr("class","caption")
-		.attr("y", -6)
-		.text(config.mapTitle+". (Hover a country to get more information)");
-	// end of legend
+		var valScale = d3.scale.threshold()
+			.domain(config.mapScaleDomain)
+			.range(config.colorscale);
 			
+		var legScale = d3.scale.linear()
+			.domain(config.legendScaleRange?config.legendScaleRange:d3.extent(d3.values(cVal)))
+			.range([0,d3.round(svgSize.w*.95)]);
+		
+		var xAxis = d3.svg.axis()
+			.scale(legScale)
+			.orient("bottom")
+			.tickSize(11)
+			.tickValues(valScale.domain())
+			.tickFormat(function(d){return formatScaleVal(d)});
 			
-	countries.selectAll("path")
-		.data(json.features)
-		.enter().append("path")
-			.attr("svg:name", function (d) {return d.properties.name;})
-			.attr("id", function (d) {return d.id;})
-			.attr("d", path)
-			.style("fill", function(d){					
-				if(cVal[d.id] === undefined){return "#666666";}
-				else{ return valScale(cVal[d.id]);}
-			})
-//			.on('mouseup',function(d){alert(d.properties.name+': '+formatMapVal(cVal[d.id]));})
-			.append("title").text(function (d) {return d.properties.name+"\nValue: "+formatMapVal(cVal[d.id]);});
-
+		if (config.datatype == "quantitative"){ // adapts the coloring and scale to use integers	
+			var formatScaleVal = d3.format("s");
+			var formatMapVal = d3.format(",");
+		}else if (config.datatype == "qualitative"){ // adapts the coloring and scale to use percentages
+			var formatScaleVal = d3.format("%");
+			var formatMapVal = d3.format("%");
+		}
+		
+		legend2.selectAll("rect")
+			.data(valScale.range().map(function(d, i){
+				return{
+					x0: i ? d3.round(legScale(valScale.domain()[i - 1])) : legScale.range()[0],
+					x1: i < 4 ? d3.round(legScale(valScale.domain()[i])) : legScale.range()[1],
+					z: d
+				}
+			}))
+			.enter().append("rect")
+				.attr("height",8)
+				.attr("x",function(d){return d.x0;})
+				.attr("width",function(d){return d.x1 - d.x0;})
+				.style("fill",function(d){return d.z;});
+		
+		legend2.call(xAxis).append("text")
+			.attr("class","caption")
+			.attr("y", -6)
+			.text(config.mapTitle+". (Hover a country to get more information)");
+// end of legend
+				
+				
+		countries.selectAll("path")
+			.data(json.features)
+			.enter().append("path")
+				.attr("svg:name", function (d) {return d.properties.name;})
+				.attr("id", function (d) {return d.id;})
+				.attr("d", path)
+				.style("fill", function(d){					
+					if(cVal[d.id] === undefined){return "#666666";}
+					else{ return valScale(cVal[d.id]);}
+				})
+//				.on('mouseup',function(d){alert(d.properties.name+': '+formatMapVal(cVal[d.id]));})
+				.append("title").text(function (d) {return d.properties.name+"\nValue: "+formatMapVal(cVal[d.id]);});
+	
 	});
 	
 
