@@ -15,6 +15,10 @@
 	#d3mapper{
 		border-top: 1px solid black;
 		border-bottom: 1px solid black;
+		height: 98%;
+		width: 98%;
+		margin-left: auto;
+		margin-right: auto;
 	} 
 	
     svg {

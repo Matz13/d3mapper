@@ -51,22 +51,20 @@ d3.select("#chooseMap").selectAll("input")
 	})
 */
 
-var w = window.innerWidth;        //width of the page
-var h = window.innerHeight;        //height of the page
+var w = $('#d3mapper').width();        //width of the div
+var h = $('#d3mapper').height();        //height of the div
 var r = 2.12; 	//ratio width/height of the coutries display
 
-var svgSize ={};	//calculate the size of the svg element to fit the window
-if(w/(h-35) < r){svgSize.w = w; svgSize.h = d3.round(w/r)+35;}
-else{svgSize.w = d3.round(h*r); svgSize.h = h;}
+var mapSize ={};	//calculate the size of the svg element to fit the window
+if(w/(h-35) < r){mapSize.w = w; mapSize.h = d3.round(w/r)+35;}
+else{mapSize.w = d3.round(h*r); mapSize.h = h;}
 
-// differentiate map size from svg size to include the legend
-var mapSize = {w:svgSize.w,h:svgSize.h-35};
 
 // define a projection and initial scale and position
 
 var projection = d3.geo.naturalEarth()
 	.scale(mapSize.w/5.5)
-	.translate([mapSize.w/2, (mapSize.h/2)*1.12]);
+	.translate([mapSize.w/2, (mapSize.h/2)*1.05]);
 
 var path = d3.geo.path()
 	.projection(projection);
@@ -104,8 +102,8 @@ function move() { // attempt at a function that constraint the zoom to the limit
 
 // -------------------------- creates the svg elements
 var svg = d3.select("#d3mapper").append("svg")
-    .attr("width", svgSize.w)
-    .attr("height", svgSize.h)
+	.attr("width", w)
+	.attr("height", mapSize.h)
 	.call(zoom);
 
 var countries = svg.append("g")
@@ -113,7 +111,7 @@ var countries = svg.append("g")
 	
 var legend2 = svg.append("g")
 	.attr("id", "legend2")
-	.attr("transform","translate("+d3.round(svgSize.w*.025)+","+d3.round(svgSize.h-25)+")");
+	.attr("transform","translate("+d3.round(mapSize.w*.025)+","+d3.round(mapSize.h-25)+")");
 
 //----------------------- Loading values from the CSV
 function draw(config){
@@ -132,7 +130,7 @@ d3.csv(config.fileToLoad, function(error,rawPop){
 			
 		var legScale = d3.scale.linear()
 			.domain(config.legendScaleRange?config.legendScaleRange:d3.extent(d3.values(cVal)))
-			.range([0,d3.round(svgSize.w*.95)]);
+			.range([0,d3.round(mapSize.w*.95)]);
 		
 		var xAxis = d3.svg.axis()
 			.scale(legScale)
