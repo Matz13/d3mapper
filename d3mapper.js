@@ -15,41 +15,24 @@ if(!config){
 //var config = OOSC2011_config;
 
 
-/*/ builds the controls
+// add links to load the different datasets
 d3.select("#controls")
-	.append("form")
-	.attr("id","chooseMap")
-		.append("label")
-		.text("Population 2010")
-		.append("input")
-			.attr("type","radio")
-			.attr("name","dataset")
-			.attr("value", "Pop_2010")
-			.property("checked","checked");
+	.append("a")
+	.attr("href","javascript:void()")
+	.attr("onclick","draw(outofschool_prm_2011_config)")
+	.text("OOSC ");
 
-d3.select("#chooseMap")
-	.attr("id","chooseMap")
-		.append("label")
-		.text("Out Of School Children 2011")
-		.append("input")
-			.attr("type","radio")
-			.attr("name","dataset")
-			.attr("value", "OOSC_2011");
-			
-d3.select("#chooseMap").selectAll("input")
-	.on("change",function change(){
-		switch(this.value){
-			case 'Pop_2010':
-				config = population2010_config;
-				draw()
-				break;
-			case 'OOSC_2011':
-				config = OOSC2011_config;
-				draw()
-				break;
-		}
-	})
-*/
+d3.select("#controls")
+	.append("a")
+	.attr("href","javascript:void()")
+	.attr("onclick","draw(population_2010_config)")
+	.text("Pop ");
+
+d3.select("#controls")
+	.append("a")
+	.attr("href","javascript:void()")
+	.attr("onclick","draw(primary_duration_config)")
+	.text("Prm duration ");
 
 var w = $('#d3mapper').width();        //width of the div
 var h = $('#d3mapper').height();        //height of the div
@@ -94,10 +77,7 @@ function move() { // attempt at a function that constraint the zoom to the limit
   t[1] = Math.min(cy *(s-1), Math.max(cy *(1-s), t[1]));
   zoom.translate(t);
   countries.attr("transform", "translate(" + t + ")scale(" + s + ")");
-  
-//  	console.log("t.out= "+t+" - s= "+s);
-//		console.log(mapSize.w+","+mapSize.h);
-		console.log(cx *(s-1)+" - "+t[0]+" - "+cx *(1-s));
+
 }
 
 // -------------------------- creates the svg elements
@@ -118,6 +98,7 @@ function draw(config){
 
 d3.csv(config.fileToLoad, function(error,rawPop){
 	d3.json("world_countries.json", function(json) {
+		
 		var cVal = {};
 		rawPop.forEach(function(d, i){
 			cVal[d.countryCode] = +d.val;
@@ -159,7 +140,8 @@ d3.csv(config.fileToLoad, function(error,rawPop){
 				.attr("height",8)
 				.attr("x",function(d){return d.x0;})
 				.attr("width",function(d){return d.x1 - d.x0;})
-				.style("fill",function(d){return d.z;});
+				.style("fill",function(d){return d.z;})
+				.transition();
 		
 		legend2.call(xAxis).append("text")
 			.attr("class","caption")
@@ -167,23 +149,25 @@ d3.csv(config.fileToLoad, function(error,rawPop){
 			.text(config.mapTitle+". (Hover a country to get more information)");
 // end of legend
 				
-				
 		countries.selectAll("path")
 			.data(json.features)
 			.enter().append("path")
 				.attr("svg:name", function (d) {return d.properties.name;})
 				.attr("id", function (d) {return d.id;})
 				.attr("d", path)
+				.on('mouseover',function(d){
+					this.style.fill = d3.rgb(valScale(cVal[d.id])).brighter()})
+				.on('mouseout', function(d){this.style.fill = valScale(cVal[d.id])})
+				.append("title").text(function (d) {return d.properties.name+"\nValue: "+formatMapVal(cVal[d.id]);});
+	
+		countries.selectAll("path")
+				.transition()
+				.duration(1000)
 				.style("fill", function(d){					
 					if(cVal[d.id] === undefined){return "#666666";}
 					else{ return valScale(cVal[d.id]);}
-				})
-//				.on('mouseup',function(d){alert(d.properties.name+': '+formatMapVal(cVal[d.id]));})
-				.append("title").text(function (d) {return d.properties.name+"\nValue: "+formatMapVal(cVal[d.id]);});
-	
+				});
 	});
-	
-
 });
 }
 draw(config);
