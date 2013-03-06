@@ -2,6 +2,7 @@
 		font-family: Arial, Verdana, Helvetica, sans-serif!important;
 		font-size: 12px;
 		margin:0px;
+		margin-top:2px;
 		padding:0;
 		background:url(mapbg.png);
 	}
@@ -13,10 +14,9 @@
 	}
      
 	#d3mapper{
-		border-top: 1px solid black;
-		border-bottom: 1px solid black;
-		height: 98%;
-		width: 98%;
+
+		height: 600px;
+		width: 1253px;
 		margin-left: auto;
 		margin-right: auto;
 	} 
@@ -36,7 +36,7 @@
     }
      
     #countries path:hover{
-
+		ffill: #FFF!important;
 	  opacity: 1;
     }
 	
@@ -51,9 +51,27 @@
 	}
 	
 	#controls{
-		position: relative;
-		top: 0;
+		font-weight: bold;
+		top: 2px;
 		left: 0;
+		color: #444;
+		padding: 4px;
+		margin-top: 2px;
+		background: #eee;
+		bborder: 1px solid black;
+	}
+	
+	#controls a{
+		padding: 3px;
+		margin: 2px;
+		border: 1px solid grey;
+		text-decoration: none;
+		color: #444;
+		background: #eee;
+	}
+	
+	#controls a:hover{
+		background: #fff;
 	}
 
 	#countries rect{
