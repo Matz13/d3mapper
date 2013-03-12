@@ -73,6 +73,15 @@
 		background: #fff;
 	}
 
+	#error{
+		color: red;
+		font-weight: bold;
+		text-align: center;
+		font-size: 1.5em;
+		margin-top: 10px;
+	}
+
+
 	#countries rect{
 		stroke: #666;
 		stroke-width: 0.5;

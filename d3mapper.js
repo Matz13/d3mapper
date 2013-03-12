@@ -2,18 +2,17 @@
 
 //defines the configuration of the map
 
-	var primary_duration_config = {tickType : "on", mapTitle : "Duration of Mandatory primary school (2011)", fileToLoad : "se_prm_durs.csv", datatype : "quantitative", colorscale : colorbrewer.RdYlGn[7], legendScaleRange : [3,9], mapScaleDomain : [3,4,5,6,7,8]};
-	var population_2010_config = {mapTitle : "Population (2010)", fileToLoad : "population2010.csv", datatype : "quantitative", colorscale : colorbrewer.Purples[6], legendScaleRange : [0,200000000], mapScaleDomain : [5000000,10000000,25000000,50000000,100000000]}
-	var outofschool_prm_2011_config = {mapTitle : "Measures of children out of school (2011)", fileToLoad : "outofschoolprimary2011.csv", datatype : "qualitative", colorscale : colorbrewer.Reds[6], legendScaleRange : [0,.63], mapScaleDomain : [.01,.05,.1,.2,.30]};
+	var primary_duration_config = {serie : "2009", tickType : "on", mapTitle : "Duration of mandatory primary school", fileToLoad : "se_prm_durs.csv", datatype : "quantitative", colorscale : colorbrewer.RdYlGn[7], legendScaleRange : [3,9], mapScaleDomain : [3,4,5,6,7,8]};
+	var population_2010_config = {serie : "val", mapTitle : "Population (2010)", fileToLoad : "population2010.csv", datatype : "quantitative", colorscale : colorbrewer.Purples[6], legendScaleRange : [0,200000000], mapScaleDomain : [5000000,10000000,25000000,50000000,100000000]}
+	var outofschool_prm_2011_config = {serie : "total", mapTitle : "Measures of children out of school in 2011", fileToLoad : "outofschoolprimary2011.csv", datatype : "qualitative", colorscale : colorbrewer.Reds[6], legendScaleRange : [0,.63], mapScaleDomain : [.01,.05,.1,.2,.30]};
+	var random_highlight_config = {}
 
 if(!config){
-	var config = primary_duration_config;
+	var config = outofschool_prm_2011_config;
 }
-
 
 //var config = population2010_config;
 //var config = OOSC2011_config;
-
 
 // add links to load the different datasets
 d3.select("#controls")
@@ -33,6 +32,9 @@ d3.select("#controls")
 	.attr("href","javascript:void(0)")
 	.attr("onclick","draw(primary_duration_config)")
 	.text("Primary school duration 2011");
+	
+
+	
 
 var w = $('#d3mapper').width();        //width of the div
 var h = $('#d3mapper').height();        //height of the div
@@ -115,45 +117,63 @@ svg.append("defs")
 			.attr("stroke-width","1");
 
 var cVal = {};
-var dVal = {};
+var dVal = [];
 var valScale = d3.scale.threshold();
 
 //----------------------- Loading values from the CSV
 function draw(config){
 
-d3.csv(config.fileToLoad, function(error,rawPop){
-	d3.json("world_countries.json", function(json) {
+d3.json("world_countries.json", function(json) {
+	
+	countries.selectAll("path")
+	.data(json.features)
+	.enter().append("path")
+		.attr("name", function (d) {return d.properties.name;})
+		.attr("id", function (d) {return d.id;})
+		.attr("d", path)
+		.style("fill", "#CCCCCC");
+	
+	d3.csv(config.fileToLoad, function(error,rawData){
 		
 		cVal = {};
-		rawPop.forEach(function(d, i){
+		rawData.forEach(function(d, i){
 			if(d.val !== undefined){
 				cVal[d.countryCode] = d.val;
 			}
 		});
-		dVal = rawPop;
+		
+		dVal = {};
+		rawData.forEach(function(d,i){
+			dVal[d.countryCode] = d;
+			console.log(dVal);
+		})
+		
+		eVal = rawData.map(function(d){
+			return{
+			}
+		})
+		
+	if(config.serie == undefined){
+		d3.select("#controls").append("div").attr("id","error").text("No serie has been selected.")
+	}
+
 	
 		if (config.datatype == "quantitative"){ // adapts the coloring and scale to use integers	
 			var formatScaleVal = d3.format("s");
 			var formatMapVal = d3.format(",");
 		}else if (config.datatype == "qualitative"){ // adapts the coloring and scale to use percentages
 			var formatScaleVal = d3.format("%");
-			var formatMapVal = d3.format("%");
+			var formatMapVal = d3.format(".2%");
 		}
 		
 		valScale
 			.domain(config.mapScaleDomain)
 			.range(config.colorscale);
-			
-		var legScale1 = d3.scale.linear()
+
+		var legScale = d3.scale.linear()
 			.domain(config.legendScaleRange?config.legendScaleRange:d3.extent(d3.values(cVal)))
 			.range([0,d3.round(mapSize.w*.95)]);
-
-			
-var legScale = d3.scale.linear()
-	.domain(config.legendScaleRange?config.legendScaleRange:d3.extent(d3.values(cVal)))
-	.range([0,d3.round(mapSize.w*.95)]);
 		
-
 		legend2.selectAll("*").remove(); // removes the previous titles from the country paths
 		
 		legend2.selectAll("rect") // draws the rect for the legend
@@ -176,15 +196,14 @@ var legScale = d3.scale.linear()
 			.tickValues(valScale.domain())
 			.tickFormat(function(d){return formatScaleVal(d)});
 					
-if(config.tickType == "on"){
-	var tickOffset = d3.round(mapSize.w*.95)/valScale.domain().length/2;
-	legScale.range([legScale.range()[0]+tickOffset,legScale.range()[1]+tickOffset]);
-
-	xAxis.scale(legScale).tickSize(0).tickPadding(9);
-}else{
-	xAxis.scale(legScale).tickSize(11);
-}
-
+		if(config.tickType == "on"){
+			var tickOffset = d3.round(mapSize.w*.95)/valScale.domain().length/2;
+			legScale.range([legScale.range()[0]+tickOffset,legScale.range()[1]+tickOffset]);
+		
+			xAxis.scale(legScale).tickSize(0).tickPadding(9);
+		}else{
+			xAxis.scale(legScale).tickSize(11);
+		}
 
 		legend2.append("g") // adds a group to contain the axis
 			.transition()
@@ -194,48 +213,45 @@ if(config.tickType == "on"){
 		legend2.append("text") // adds the caption of the legend
 			.attr("class","caption")
 			.attr("y", -6)
-			.text(config.mapTitle+". (Hover a country to get more information)");
-// end of legend
+			.text(config.mapTitle+" ("+config.serie+"). (Hover a country to get more information)");
 				
 		countries.selectAll("path")
-			.data(json.features)
-			.enter().append("path")
-				.attr("name", function (d) {return d.properties.name;})
-				.attr("id", function (d) {return d.id;})
-				.attr("d", path)
-				.style("fill", "#CCCCCC")
-				.on('mouseover',function(d){
-					oldColor = this.style.fill;
-					if(cVal[d.id] !== "" && cVal[d.id] !== undefined){ 
+			.on('mouseover',function(d){
+					if(dVal[d.id][config.serie] !== "" && dVal[d.id][config.serie] !== undefined){ 
 						this.style.fill = d3.rgb(this.style.fill).brighter()
 					}
 				})
 					
 				.on('mouseout', function(d){
-					if(cVal[d.id] !== "" && cVal[d.id] !== undefined){ 
-						this.style.fill = valScale(cVal[d.id]);
+					if(dVal[d.id][config.serie] !== "" && dVal[d.id][config.serie] !== undefined){ 
+						this.style.fill = valScale(dVal[d.id][config.serie]);
 					}	
 				})	
 				.append("title");
 
 		d3.select("#striped").transition().duration(1000)
 			.style("opacity",0);
-				
+		
+		// selects precedently striped countries (no data) and apply a color to prepare the transition
 		countries.selectAll('path[style*=striped]')
 			.style("fill", "#CCCCCC");
 	
+		
 		countries.selectAll("path")
 				.transition()
 				.duration(1000)
 				.style("fill", function(d){
-					if(cVal[d.id] == undefined || cVal[d.id] == ""){return "url(#striped)";}
-					else{ return valScale(cVal[d.id]);}
+					if(dVal[d.id] == undefined || dVal[d.id][config.serie] == undefined || dVal[d.id][config.serie] == ""){
+						return "url(#striped)";
+					}else{
+						return valScale(dVal[d.id][config.serie]);
+					}
 				})
 				.select("title").text(function (d) {
-					if(cVal[d.id] == undefined || cVal[d.id] == ""){
+					if(dVal[d.id] == undefined || dVal[d.id][config.serie] == undefined || dVal[d.id][config.serie] == ""){
 						return d.properties.name+"\nValue not available ";
 					}else{
-						return d.properties.name+"\nValue: "+formatMapVal(cVal[d.id]);
+						return d.properties.name+"\nValue: "+formatMapVal(dVal[d.id][config.serie]);
 					}
 				})
 				;
