@@ -33,8 +33,10 @@ d3.select("#controls")
 	.attr("onclick","draw(primary_duration_config)")
 	.text("Primary school duration 2011");
 	*/
-[]
-	
+
+d3.select("#controls").append("div").attr("id","serie_slider");
+$("#serie_slider").slider({animate:"fast"});
+
 
 var w = $('#d3mapper').width();        //width of the div
 var h = $('#d3mapper').height();        //height of the div
@@ -45,74 +47,70 @@ if(w/(h-35) < r){mapSize.w = w; mapSize.h = d3.round(w/r)+35;}
 else{mapSize.w = d3.round(h*r); mapSize.h = h;}
 
 
+d3.json("world_countries.json", function(json) {
+d3.csv(config.dataSource, function(error,rawData){
+
 // define a projection and initial scale and position
 
-var projection = d3.geo.naturalEarth()
-	.scale(mapSize.w/5.5)
-	.translate([mapSize.w/2, (mapSize.h/2)*1.08]);
-
-var path = d3.geo.path()
-	.projection(projection);
-
-var zoom = d3.behavior.zoom()
-	.translate(projection.translate())
-	.scale(projection.scale())
-	.scaleExtent([w/5.5, w])
-	.on("zoom", mapZoom);
-
-function mapZoom() {
-  projection.translate(d3.event.translate)
-	.scale(d3.event.scale);
-  countries.selectAll("path")
-	.attr("d", path);
-}
-
-// -------------------------- creates the svg elements
-var svg = d3.select("#d3mapper").append("svg")
-	.attr("width", w)
-	.attr("height", mapSize.h)
-	.call(zoom);
-
-var countries = svg.append("g")
-	.attr("id", "countries");
+	var projection = d3.geo.naturalEarth()
+		.scale(mapSize.w/5.5)
+		.translate([mapSize.w/2, (mapSize.h/2)*1.08]);
 	
-var legend = svg.append("g")
-	.attr("id", "legend")
-	.attr("transform","translate("+d3.round(mapSize.w*.025)+","+d3.round(mapSize.h-25)+")");
+	var path = d3.geo.path()
+		.projection(projection);
+	
+	var zoom = d3.behavior.zoom()
+		.translate(projection.translate())
+		.scale(projection.scale())
+		.scaleExtent([w/5.5, w])
+		.on("zoom", mapZoom);
+	
+	function mapZoom() {
+	projection.translate(d3.event.translate)
+		.scale(d3.event.scale);
+	countries.selectAll("path")
+		.attr("d", path);
+	}
+	
+	var dVal = [];
+	var eVal = [];
+	var valScale = d3.scale.threshold();
+	var years;
 
-// create the striped pattern for unavailable data
-svg.append("defs")
-	.append("pattern")
-		.attr("id","striped")
-		.attr("width", 6)
-		.attr("height", 6)
-		.attr("x", 0)
-		.attr("y", 0)
-		.attr("patternUnits","userSpaceOnUse")
-		.append("rect")
-		.attr("width", 6)
-		.attr("height", 6)
-		.attr("fill","#ccc");
+	// ----- CREATING GRAPHICAL ELEMENTS
+	// -------------------------- creates the svg elements
+	var svg = d3.select("#d3mapper").append("svg")
+		.attr("width", w)
+		.attr("height", mapSize.h)
+		.call(zoom);
+	
+	var countries = svg.append("g")
+		.attr("id", "countries");
 		
-	d3.select("#striped")
-		.append("path")
-			.attr("d","M3,0 L6,3 M0,3 L3,6")
-			.attr("stroke","black")
-			.attr("stroke-width","1")
-			.style("stroke-linecap", "square");
-
-var dVal = [];
-var eVal = [];
-var valScale = d3.scale.threshold();
-var years;
-
-
-
-
-//----------------------- Loading values from the CSV
-function draw(config){
-
-d3.json("world_countries.json", function(json) {
+	var legend = svg.append("g")
+		.attr("id", "legend")
+		.attr("transform","translate("+d3.round(mapSize.w*.025)+","+d3.round(mapSize.h-25)+")");
+	
+	// create the striped pattern for unavailable data
+	svg.append("defs")
+		.append("pattern")
+			.attr("id","striped")
+			.attr("width", 6)
+			.attr("height", 6)
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("patternUnits","userSpaceOnUse")
+			.append("rect")
+			.attr("width", 6)
+			.attr("height", 6)
+			.attr("fill","#ccc");
+			
+		d3.select("#striped")
+			.append("path")
+				.attr("d","M3,0 L6,3 M0,3 L3,6")
+				.attr("stroke","black")
+				.attr("stroke-width","1")
+				.style("stroke-linecap", "square");
 	
 	countries.selectAll("path")
 	.data(json.features)
@@ -122,49 +120,51 @@ d3.json("world_countries.json", function(json) {
 		.attr("d", path)
 		.style("fill", "#CCCCCC");
 	
-	d3.csv(config.dataSource, function(error,rawData){
-		
-		// Extract years and compute min/max
-		years = d3.keys(rawData[0])
-            .filter(function(d) { return d.match(/^\d/); })
-            .map(   function(d) { return parseInt(d); });
-			   
-		var min_year = d3.min(years);
-		var max_year = d3.max(years);
-		
-		// if serie is not defined use latest year
-		if (config.serie == undefined){
-			config.serie = max_year;
-			d3.select("#controls").append("div").attr("id","error").text("Serie "+config.serie+" automatically selected")
-		}
+	// Extract years and compute min/max
+	years = d3.keys(rawData[0])
+        .filter(function(d) { return d.match(/^\d/); })
+        .map(   function(d) { return parseInt(d); });
+		   
+	var min_year = d3.min(years);
+	var max_year = d3.max(years);
+	
+	// if serie is not defined use latest year
+	if (config.serie == undefined){
+		config.serie = max_year;
+		d3.select("#controls").append("div").attr("id","error").text("Serie "+config.serie+" automatically selected")
+	}
 
-		// Extract all values from the dataset	
-		var values   = d3.merge(
-			rawData
-                .map(function(d) { return d3.entries(d).filter(function(d) { return d.key.match(/^\d/); }); })
-                .map(function(d) { return d.map(function(d) { return d.value; }); })
-                .map(function(d) { return d.map(function(d) { return parseFloat(d); }) })
-                .map(function(d) { return d.filter(function(d) { return !isNaN(d); }) })
-        );
-				
-		 // Extract data for selected year
-		 // (Returns a hash in the form of { <COUNTRY ID> : <VALUE> } for selected year)
-		eVal = function() {
-			return rawData
-				.reduce( function(previous, current, index) {
-					previous[ current["countryCode"] ] = parseFloat(current[config.serie]);
-					return previous;
-				}, {})
-        };
-console.log(eVal());
-				
-		dVal = {};
-		rawData.forEach(function(d,i){
-			dVal[d.countryCode] = d;
-		})
+	// Extract all values from the dataset	
+	var values   = d3.merge(
+		rawData
+            .map(function(d) { return d3.entries(d).filter(function(d) { return d.key.match(/^\d/); }); })
+            .map(function(d) { return d.map(function(d) { return d.value; }); })
+            .map(function(d) { return d.map(function(d) { return parseFloat(d); }) })
+            .map(function(d) { return d.filter(function(d) { return !isNaN(d); }) })
+    );
+			
+	 // Extract data for selected year
+	 // (Returns a hash in the form of { <COUNTRY ID> : <VALUE> } for selected year)
+	eVal = function() {
+		return rawData
+			.reduce( function(previous, current, index) {
+				previous[ current["countryCode"] ] = parseFloat(current[config.serie]);
+				return previous;
+			}, {})
+    };
+
+console.log(eVal);	
+	
+	dVal = {};
+	rawData.forEach(function(d,i){
+		dVal[d.countryCode] = d;
+	})
 		
-d3.select("#controls").append("div").attr("id","serie_slider");
-$("#serie_slider").slider({min:min_year,max:max_year, value: config.serie, animate:"fast"});
+$("#serie_slider").slider("option","min",min_year);
+$("#serie_slider").slider("option","max",max_year);
+$("#serie_slider").slider("option","value", config.serie); 
+
+console.log($("#serie_slider").slider("option","min")+"-"+$("#serie_slider").slider("option","max"));
 		
 		// define the type of data displayed: quantitative (integers) or qualitative (percentages)
 		
@@ -267,8 +267,7 @@ $("#serie_slider").slider({min:min_year,max:max_year, value: config.serie, anima
 				;
 	});
 });
-}
-draw(config);
+
 
 
 
